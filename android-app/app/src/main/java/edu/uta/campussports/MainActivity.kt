@@ -29,7 +29,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import edu.uta.campussports.ui.theme.CampusSportsTheme
+import edu.uta.campussports.auth.FirebaseAuthViewModel
+import edu.uta.campussports.auth.FirebaseAuthScreen
+import edu.uta.campussports.auth.AuthState
+import edu.uta.campussports.screens.RealEventsScreen
+import edu.uta.campussports.screens.RealChatScreen
+import edu.uta.campussports.viewmodel.EventsViewModel
+import edu.uta.campussports.data.UserProfile
+import edu.uta.campussports.data.EventSeeder
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,9 +48,49 @@ class MainActivity : ComponentActivity() {
         setContent {
             CampusSportsTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    HomeScaffold()
+                    CampusSportsApp()
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun CampusSportsApp() {
+    val authViewModel: FirebaseAuthViewModel = viewModel()
+    val authState by authViewModel.authState.collectAsStateWithLifecycle()
+    
+    when (authState) {
+        is AuthState.Loading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CircularProgressIndicator(
+                        color = Color(0xFF0064A4)
+                    )
+                    Text(
+                        text = "Campus Sports",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+        is AuthState.Authenticated -> {
+            HomeScaffold(
+                onSignOut = { authViewModel.signOut() }
+            )
+        }
+        else -> {
+            FirebaseAuthScreen(
+                viewModel = authViewModel,
+                onNavigateToMain = { }
+            )
         }
     }
 }
@@ -48,8 +99,18 @@ private enum class Tab { EVENTS, CREATE, CHAT, PROFILE }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeScaffold() {
+private fun HomeScaffold(onSignOut: () -> Unit) {
     var selectedTab by remember { mutableStateOf(Tab.EVENTS) }
+    var showSignOutDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    
+    // Seed initial events once
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            val seeder = EventSeeder()
+            seeder.seedInitialEvents()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -63,6 +124,15 @@ private fun HomeScaffold() {
                             Tab.PROFILE -> "Profile"
                         }
                     )
+                },
+                actions = {
+                    IconButton(onClick = { showSignOutDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Sign Out",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             )
         },
@@ -97,12 +167,36 @@ private fun HomeScaffold() {
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab) {
-                Tab.EVENTS -> EventsListScreen()
+                Tab.EVENTS -> RealEventsScreen()
                 Tab.CREATE -> CreateEventScreen()
-                Tab.CHAT -> ChatScreen()
+                Tab.CHAT -> RealChatScreen()
                 Tab.PROFILE -> ProfileScreen()
             }
         }
+    }
+    
+    // Sign out confirmation dialog
+    if (showSignOutDialog) {
+        AlertDialog(
+            onDismissRequest = { showSignOutDialog = false },
+            title = { Text("Sign Out") },
+            text = { Text("Are you sure you want to sign out?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onSignOut()
+                        showSignOutDialog = false
+                    }
+                ) {
+                    Text("Sign Out")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSignOutDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -727,10 +821,36 @@ fun ChatBubble(message: ChatMessage) {
 
 @Composable
 fun ProfileScreen() {
-    var name by remember { mutableStateOf("Alex Johnson") }
-    var major by remember { mutableStateOf("Computer Science - Junior") }
-    var sports by remember { mutableStateOf("Basketball (MAC Courts), Soccer (MAC Fields), Tennis (MAC)") }
+    val authViewModel: FirebaseAuthViewModel = viewModel()
+    val userProfile by authViewModel.userProfile.collectAsStateWithLifecycle()
+    
+    var name by remember { mutableStateOf("Loading...") }
+    var major by remember { mutableStateOf("Loading...") }
+    var year by remember { mutableStateOf("Loading...") }
+    var sports by remember { mutableStateOf("Loading...") }
+    var skillLevel by remember { mutableStateOf("Loading...") }
+    var bio by remember { mutableStateOf("Loading...") }
     var isEditing by remember { mutableStateOf(false) }
+    
+    // Update profile info when userProfile changes
+    LaunchedEffect(userProfile) {
+        userProfile?.let { profile ->
+            name = profile.fullName
+            major = "${profile.major} - ${profile.year}"
+            year = profile.year
+            sports = if (profile.favoritesSports.isNotEmpty()) {
+                profile.favoritesSports.joinToString(", ")
+            } else {
+                "No favorite sports selected"
+            }
+            skillLevel = profile.skillLevel
+            bio = if (profile.bio.isNotEmpty()) profile.bio else "No bio available"
+        } ?: run {
+            name = "Unknown User"
+            major = "Unknown"
+            sports = "None"
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
