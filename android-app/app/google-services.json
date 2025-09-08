@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "314534428008",
+    "project_id": "campus-sports-app",
+    "storage_bucket": "campus-sports-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:314534428008:android:e0180726bcd95db1916add",
+        "android_client_info": {
+          "package_name": "edu.uta.campussports"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVkTYBZKEyblFWr16SxO-2E-F9-w8vi6Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
