@@ -110,17 +110,18 @@ fun CoinFlipperScreen() {
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             item {
-                Button(
-                    onClick = {
-                        showFlipInterface = false
-                        team1Name = ""
-                        team2Name = ""
-                        flipResult = null
-                    },
-                    colors = ButtonDefaults.outlinedButtonColors(),
-                    modifier = Modifier.align(Alignment.Start)
-                ) {
-                    Text("← Back")
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = {
+                            showFlipInterface = false
+                            team1Name = ""
+                            team2Name = ""
+                            flipResult = null
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors()
+                    ) {
+                        Text("← Back")
+                    }
                 }
             }
 
