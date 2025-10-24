@@ -6,8 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -54,7 +54,7 @@ fun ToolsScreen() {
             ToolButton(
                 title = "Buzzer",
                 description = "Sound buzzer for games and events",
-                icon = Icons.Default.VolumeUp,
+                icon = Icons.Default.Info,
                 backgroundColor = Color(0xFF20B2AA),
                 onClick = { /* TODO: Navigate to Buzzer */ }
             )
@@ -64,7 +64,7 @@ fun ToolsScreen() {
             ToolButton(
                 title = "Score Keeper",
                 description = "Keep track of scores during matches",
-                icon = Icons.Default.EmojiEvents,
+                icon = Icons.Default.Star,
                 backgroundColor = Color(0xFFFF6347),
                 onClick = { /* TODO: Navigate to Score Keeper */ }
             )
