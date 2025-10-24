@@ -19,59 +19,67 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ToolsScreen() {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        item {
-            Text(
-                text = "Tools & Utilities",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = "Quick access to useful sports tools",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+    var selectedTool by remember { mutableStateOf<String?>(null) }
 
-        item {
-            ToolButton(
-                title = "Coin Flipper",
-                description = "Flip a coin to make quick decisions",
-                icon = Icons.Default.Build,
-                backgroundColor = Color(0xFF6A5ACD),
-                onClick = { /* TODO: Navigate to Coin Flipper */ }
-            )
-        }
+    when (selectedTool) {
+        "coin_flipper" -> CoinFlipperScreen()
+        "score_keeper" -> ScoreKeeperScreen()
+        else -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                item {
+                    Text(
+                        text = "Tools & Utilities",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Quick access to useful sports tools",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-        item {
-            ToolButton(
-                title = "Buzzer",
-                description = "Sound buzzer for games and events",
-                icon = Icons.Default.Info,
-                backgroundColor = Color(0xFF20B2AA),
-                onClick = { /* TODO: Navigate to Buzzer */ }
-            )
-        }
+                item {
+                    ToolButton(
+                        title = "Coin Flipper",
+                        description = "Flip a coin to make quick decisions",
+                        icon = Icons.Default.Build,
+                        backgroundColor = Color(0xFF6A5ACD),
+                        onClick = { selectedTool = "coin_flipper" }
+                    )
+                }
 
-        item {
-            ToolButton(
-                title = "Score Keeper",
-                description = "Keep track of scores during matches",
-                icon = Icons.Default.Star,
-                backgroundColor = Color(0xFFFF6347),
-                onClick = { /* TODO: Navigate to Score Keeper */ }
-            )
-        }
+                item {
+                    ToolButton(
+                        title = "Buzzer",
+                        description = "Sound buzzer for games and events",
+                        icon = Icons.Default.Info,
+                        backgroundColor = Color(0xFF20B2AA),
+                        onClick = { /* TODO: Navigate to Buzzer */ }
+                    )
+                }
 
-        item {
-            Spacer(Modifier.height(20.dp))
+                item {
+                    ToolButton(
+                        title = "Score Keeper",
+                        description = "Keep track of scores during matches",
+                        icon = Icons.Default.Star,
+                        backgroundColor = Color(0xFFFF6347),
+                        onClick = { selectedTool = "score_keeper" }
+                    )
+                }
+
+                item {
+                    Spacer(Modifier.height(20.dp))
+                }
+            }
         }
     }
 }

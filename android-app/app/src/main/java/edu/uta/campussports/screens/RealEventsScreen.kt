@@ -78,16 +78,16 @@ fun RealEventsScreen(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Filter buttons
+        // Filter buttons - Horizontally scrollable
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
-                Row(
+                androidx.compose.foundation.lazy.LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val filters = listOf("All", "Basketball", "Soccer", "Volleyball", "Tennis", "Swimming")
-                    filters.forEach { filter ->
+                    items(filters) { filter ->
                         FilterChip(
                             onClick = { selectedFilter = filter },
                             label = { Text(filter) },
@@ -95,7 +95,7 @@ fun RealEventsScreen(
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
             }
             
