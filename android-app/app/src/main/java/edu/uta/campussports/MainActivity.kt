@@ -39,6 +39,7 @@ import edu.uta.campussports.screens.RealEventsScreen
 import edu.uta.campussports.screens.RealChatScreen
 import edu.uta.campussports.screens.MyEventsScreen
 import edu.uta.campussports.screens.ToolsScreen
+import edu.uta.campussports.screens.DatePickerField
 import edu.uta.campussports.viewmodel.EventsViewModel
 import edu.uta.campussports.viewmodel.ActionState
 import edu.uta.campussports.data.UserProfile
@@ -592,19 +593,31 @@ fun CreateEventScreen() {
                 }
             }
 
-            // Date and Time (Separate fields)
+            // Date (with Calendar Picker) and Time (Separate fields)
             item {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
-                        value = date,
-                        onValueChange = { date = it },
-                        label = { Text("Date") },
-                        placeholder = { Text("Dec 7, 2024") },
+                    // Date Picker
+                    Card(
                         modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        DatePickerField(
+                            selectedDate = date,
+                            onDateSelected = { date = it },
+                            label = "Date",
+                            placeholder = "Select a date"
+                        )
+                    }
+
                     OutlinedTextField(
                         value = time,
                         onValueChange = { time = it },

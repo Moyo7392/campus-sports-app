@@ -145,18 +145,32 @@ fun CreateEventDialog(
                     }
                 }
                 
-                // Date and Time
+                // Date (with Calendar Picker) and Time
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
-                        value = date,
-                        onValueChange = { date = it },
-                        label = { Text("Date") },
-                        placeholder = { Text("Dec 7, 2024") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
+                    // Date Picker
+                    Card(
+                        modifier = Modifier
+                            .weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        DatePickerField(
+                            selectedDate = date,
+                            onDateSelected = { date = it },
+                            label = "Date",
+                            placeholder = "Select a date"
+                        )
+                    }
+
+                    // Time Input
                     OutlinedTextField(
                         value = time,
                         onValueChange = { time = it },
