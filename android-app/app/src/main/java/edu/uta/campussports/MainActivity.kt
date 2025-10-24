@@ -37,6 +37,7 @@ import edu.uta.campussports.auth.FirebaseAuthScreen
 import edu.uta.campussports.auth.AuthState
 import edu.uta.campussports.screens.RealEventsScreen
 import edu.uta.campussports.screens.RealChatScreen
+import edu.uta.campussports.screens.MyEventsScreen
 import edu.uta.campussports.screens.ToolsScreen
 import edu.uta.campussports.viewmodel.EventsViewModel
 import edu.uta.campussports.data.UserProfile
@@ -96,7 +97,7 @@ fun CampusSportsApp() {
     }
 }
 
-private enum class Tab { EVENTS, CREATE, CHAT, TOOLS, PROFILE }
+private enum class Tab { EVENTS, CREATE, CHAT, MY_EVENTS, TOOLS, PROFILE }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,6 +123,7 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
                             Tab.EVENTS -> "Events"
                             Tab.CREATE -> "Create Event"
                             Tab.CHAT -> "Chat"
+                            Tab.MY_EVENTS -> "My Events"
                             Tab.TOOLS -> "Tools"
                             Tab.PROFILE -> "Profile"
                         }
@@ -159,6 +161,12 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
                     label = { Text("Chat") }
                 )
                 NavigationBarItem(
+                    selected = selectedTab == Tab.MY_EVENTS,
+                    onClick = { selectedTab = Tab.MY_EVENTS },
+                    icon = { Icon(Icons.Default.EventNote, contentDescription = "My Events") },
+                    label = { Text("My Events") }
+                )
+                NavigationBarItem(
                     selected = selectedTab == Tab.TOOLS,
                     onClick = { selectedTab = Tab.TOOLS },
                     icon = { Icon(Icons.Default.Build, contentDescription = "Tools") },
@@ -178,6 +186,7 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
                 Tab.EVENTS -> RealEventsScreen()
                 Tab.CREATE -> CreateEventScreen()
                 Tab.CHAT -> RealChatScreen()
+                Tab.MY_EVENTS -> MyEventsScreen()
                 Tab.TOOLS -> ToolsScreen()
                 Tab.PROFILE -> ProfileScreen()
             }
