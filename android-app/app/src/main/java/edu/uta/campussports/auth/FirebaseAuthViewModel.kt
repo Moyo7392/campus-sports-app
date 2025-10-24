@@ -111,14 +111,26 @@ class FirebaseAuthViewModel : ViewModel() {
                                     .document(user.uid)
                                     .set(userProfile)
                                     .addOnSuccessListener {
-                                        println("✅ User profile saved successfully!")
+                                        println("✅ User profile saved successfully for UID: ${user.uid}")
                                         _currentUser.value = user
                                         loadUserProfile(user.uid)
                                         _authState.value = AuthState.Authenticated
                                     }
                                     .addOnFailureListener { exception ->
                                         println("❌ Failed to save profile: ${exception.message}")
-                                        _authState.value = AuthState.Error("Failed to create profile: ${exception.message}")
+                                        println("❌ Error code: ${exception::class.simpleName}")
+                                        println("❌ User UID: ${user.uid}")
+                                        println("❌ Full error: ${exception.stackTraceToString()}")
+
+                                        // Provide helpful error message based on error type
+                                        val errorMsg = when {
+                                            exception.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true ->
+                                                "Permission denied. Please check Firestore security rules are set up correctly."
+                                            exception.message?.contains("UNAUTHENTICATED", ignoreCase = true) == true ->
+                                                "Authentication error. Please try signing in again."
+                                            else -> "Failed to create profile: ${exception.message}"
+                                        }
+                                        _authState.value = AuthState.Error(errorMsg)
                                     }
                             }
                         } else {
