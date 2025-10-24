@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +28,7 @@ fun FirebaseAuthScreen(
     var isLoginMode by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
     var showForgotPassword by remember { mutableStateOf(false) }
     var showComprehensiveSignUp by remember { mutableStateOf(false) }
     
@@ -147,7 +149,7 @@ fun FirebaseAuthScreen(
                         // Password field
                         OutlinedTextField(
                             value = password,
-                            onValueChange = { 
+                            onValueChange = {
                                 password = it
                                 viewModel.clearError()
                             },
@@ -155,7 +157,15 @@ fun FirebaseAuthScreen(
                             leadingIcon = {
                                 Icon(Icons.Default.Lock, contentDescription = null)
                             },
-                            visualTransformation = PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { showPassword = !showPassword }) {
+                                    Icon(
+                                        if (showPassword) Icons.Default.Info else Icons.Default.Lock,
+                                        contentDescription = if (showPassword) "Hide password" else "Show password"
+                                    )
+                                }
+                            },
+                            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,

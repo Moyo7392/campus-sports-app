@@ -167,7 +167,7 @@ private fun EventChatCard(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(Color(0xFF0064A4), CircleShape),
+                    .background(Color(0xFF4CAF50), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -229,7 +229,7 @@ private fun EventChatScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         // Chat header
         Surface(
-            color = Color(0xFF0064A4),
+            color = Color(0xFF4CAF50),
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
@@ -323,7 +323,7 @@ private fun EventChatScreen(
                     placeholder = { Text("Type a message...") },
                     modifier = Modifier.weight(1f),
                     maxLines = 3,
-                    shape = RoundedCornerShape(24.dp)
+                    shape = RoundedCornerShape(12.dp)
                 )
                 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -331,7 +331,7 @@ private fun EventChatScreen(
                 FloatingActionButton(
                     onClick = onSendMessage,
                     modifier = Modifier.size(48.dp),
-                    containerColor = Color(0xFF0064A4),
+                    containerColor = Color(0xFF4CAF50),
                     contentColor = Color.White
                 ) {
                     Icon(Icons.Default.Send, contentDescription = "Send")
@@ -357,7 +357,7 @@ private fun ChatMessageBubble(
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(Color(0xFF0064A4), CircleShape),
+                    .background(Color(0xFF4CAF50), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -404,7 +404,7 @@ private fun ChatMessageBubble(
                     
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = if (isCurrentUser) Color(0xFF0064A4) else MaterialTheme.colorScheme.surfaceVariant
+                            containerColor = if (isCurrentUser) Color(0xFF4CAF50) else MaterialTheme.colorScheme.surfaceVariant
                         ),
                         shape = RoundedCornerShape(
                             topStart = 12.dp,

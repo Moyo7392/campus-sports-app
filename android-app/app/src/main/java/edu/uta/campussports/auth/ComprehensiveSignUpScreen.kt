@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import edu.uta.campussports.data.AcademicInfo
@@ -37,7 +38,11 @@ fun ComprehensiveSignUpScreen(
     var skillLevel by remember { mutableStateOf("Beginner") }
     var bio by remember { mutableStateOf("") }
     var selectedSports by remember { mutableStateOf(setOf<String>()) }
-    
+
+    // Password visibility toggles
+    var showPassword by remember { mutableStateOf(false) }
+    var showConfirmPassword by remember { mutableStateOf(false) }
+
     // Dropdown states
     var majorExpanded by remember { mutableStateOf(false) }
     var yearExpanded by remember { mutableStateOf(false) }
@@ -119,10 +124,48 @@ fun ComprehensiveSignUpScreen(
                         onValueChange = { password = it },
                         label = { Text("Password") },
                         leadingIcon = { Icon(Icons.Default.Lock, null) },
-                        visualTransformation = PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { showPassword = !showPassword }) {
+                                Icon(
+                                    if (showPassword) Icons.Default.Info else Icons.Default.Lock,
+                                    contentDescription = if (showPassword) "Hide password" else "Show password"
+                                )
+                            }
+                        },
+                        visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
+                    )
+
+                    // Password strength indicator
+                    val passwordStrength = remember(password) {
+                        when {
+                            password.isEmpty() -> "Password strength: None"
+                            password.length < 8 -> "Weak (min 8 characters required)"
+                            !password.any { it.isUpperCase() } || !password.any { it.isLowerCase() } ->
+                                "Fair (add uppercase + lowercase)"
+                            !password.any { !it.isLetterOrDigit() } ->
+                                "Good (add special character like !@#$%)"
+                            else -> "Strong"
+                        }
+                    }
+                    val strengthColor = remember(password) {
+                        when {
+                            password.isEmpty() -> Color.Gray
+                            password.length < 8 -> Color(0xFFD32F2F) // Red
+                            !password.any { it.isUpperCase() } || !password.any { it.isLowerCase() } ->
+                                Color(0xFFF57C00) // Orange
+                            !password.any { !it.isLetterOrDigit() } ->
+                                Color(0xFFFBC02D) // Yellow
+                            else -> Color(0xFF4CAF50) // Green
+                        }
+                    }
+                    Text(
+                        text = passwordStrength,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = strengthColor,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     
                     // Confirm Password
@@ -131,11 +174,30 @@ fun ComprehensiveSignUpScreen(
                         onValueChange = { confirmPassword = it },
                         label = { Text("Confirm Password") },
                         leadingIcon = { Icon(Icons.Default.Lock, null) },
-                        visualTransformation = PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { showConfirmPassword = !showConfirmPassword }) {
+                                Icon(
+                                    if (showConfirmPassword) Icons.Default.Info else Icons.Default.Lock,
+                                    contentDescription = if (showConfirmPassword) "Hide password" else "Show password"
+                                )
+                            }
+                        },
+                        visualTransformation = if (showConfirmPassword) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
+
+                    // Password match indicator
+                    if (confirmPassword.isNotEmpty()) {
+                        val matchesPassword = password == confirmPassword
+                        Text(
+                            text = if (matchesPassword) "✓ Passwords match" else "✗ Passwords do not match",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (matchesPassword) Color(0xFF4CAF50) else Color(0xFFD32F2F),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
         }
@@ -328,6 +390,14 @@ fun ComprehensiveSignUpScreen(
             }
             
             // Sign Up Button
+            val isPasswordStrong = remember(password) {
+                password.length >= 8 &&
+                password.any { it.isUpperCase() } &&
+                password.any { it.isLowerCase() } &&
+                password.any { !it.isLetterOrDigit() }
+            }
+            val passwordsMatch = password == confirmPassword && password.isNotBlank()
+
             Button(
                 onClick = {
                     viewModel.signUp(
@@ -348,6 +418,9 @@ fun ComprehensiveSignUpScreen(
                          fullName.isNotBlank() &&
                          email.isNotBlank() &&
                          password.isNotBlank() &&
+                         confirmPassword.isNotBlank() &&
+                         passwordsMatch &&
+                         isPasswordStrong &&
                          major.isNotBlank() &&
                          year.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
@@ -361,6 +434,48 @@ fun ComprehensiveSignUpScreen(
                     )
                 } else {
                     Text("Create Account", fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            // Show password requirements if not met
+            if (password.isNotEmpty() && !isPasswordStrong) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFFFEBEE)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "Password must include:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFFC62828),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "• At least 8 characters (${password.length}/8)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (password.length >= 8) Color(0xFF4CAF50) else Color(0xFFC62828)
+                        )
+                        Text(
+                            text = "• Uppercase letter (${if (password.any { it.isUpperCase() }) "✓" else "✗"})",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (password.any { it.isUpperCase() }) Color(0xFF4CAF50) else Color(0xFFC62828)
+                        )
+                        Text(
+                            text = "• Lowercase letter (${if (password.any { it.isLowerCase() }) "✓" else "✗"})",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (password.any { it.isLowerCase() }) Color(0xFF4CAF50) else Color(0xFFC62828)
+                        )
+                        Text(
+                            text = "• Special character (${if (password.any { !it.isLetterOrDigit() }) "✓" else "✗"})",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (password.any { !it.isLetterOrDigit() }) Color(0xFF4CAF50) else Color(0xFFC62828)
+                        )
+                    }
                 }
             }
 

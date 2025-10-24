@@ -249,7 +249,7 @@ fun ScoreKeeperScreen() {
                             team1Score = 0
                             team2Score = 0
                         },
-                        modifier = Modifier.height(40.dp),
+                        modifier = Modifier.height(50.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.outlinedButtonColors()
                     ) {
@@ -262,7 +262,7 @@ fun ScoreKeeperScreen() {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f)
                     ),
@@ -349,7 +349,7 @@ fun ScoreKeeperScreen() {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF2196F3).copy(alpha = 0.1f)
                     ),
