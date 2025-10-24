@@ -1,6 +1,7 @@
 package edu.uta.campussports.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -154,7 +155,7 @@ fun ScoreKeeperScreen() {
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f)
                     ),
-                    border = androidx.compose.foundation.BorderStroke(
+                    border = BorderStroke(
                         2.dp,
                         Color(0xFF4CAF50)
                     )
@@ -222,7 +223,7 @@ fun ScoreKeeperScreen() {
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF2196F3).copy(alpha = 0.1f)
                     ),
-                    border = androidx.compose.foundation.BorderStroke(
+                    border = BorderStroke(
                         2.dp,
                         Color(0xFF2196F3)
                     )
