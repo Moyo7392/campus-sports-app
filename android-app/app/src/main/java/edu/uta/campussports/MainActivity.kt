@@ -37,6 +37,7 @@ import edu.uta.campussports.auth.FirebaseAuthScreen
 import edu.uta.campussports.auth.AuthState
 import edu.uta.campussports.screens.RealEventsScreen
 import edu.uta.campussports.screens.RealChatScreen
+import edu.uta.campussports.screens.ToolsScreen
 import edu.uta.campussports.viewmodel.EventsViewModel
 import edu.uta.campussports.data.UserProfile
 import edu.uta.campussports.data.EventSeeder
@@ -71,7 +72,7 @@ fun CampusSportsApp() {
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     CircularProgressIndicator(
-                        color = Color(0xFF0064A4)
+                        color = Color(0xFF4CAF50)
                     )
                     Text(
                         text = "Campus Sports",
@@ -95,7 +96,7 @@ fun CampusSportsApp() {
     }
 }
 
-private enum class Tab { EVENTS, CREATE, CHAT, PROFILE }
+private enum class Tab { EVENTS, CREATE, CHAT, TOOLS, PROFILE }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,6 +122,7 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
                             Tab.EVENTS -> "Events"
                             Tab.CREATE -> "Create Event"
                             Tab.CHAT -> "Chat"
+                            Tab.TOOLS -> "Tools"
                             Tab.PROFILE -> "Profile"
                         }
                     )
@@ -157,6 +159,12 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
                     label = { Text("Chat") }
                 )
                 NavigationBarItem(
+                    selected = selectedTab == Tab.TOOLS,
+                    onClick = { selectedTab = Tab.TOOLS },
+                    icon = { Icon(Icons.Default.Build, contentDescription = "Tools") },
+                    label = { Text("Tools") }
+                )
+                NavigationBarItem(
                     selected = selectedTab == Tab.PROFILE,
                     onClick = { selectedTab = Tab.PROFILE },
                     icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
@@ -170,6 +178,7 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
                 Tab.EVENTS -> RealEventsScreen()
                 Tab.CREATE -> CreateEventScreen()
                 Tab.CHAT -> RealChatScreen()
+                Tab.TOOLS -> ToolsScreen()
                 Tab.PROFILE -> ProfileScreen()
             }
         }
