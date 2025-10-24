@@ -40,6 +40,7 @@ import edu.uta.campussports.screens.RealChatScreen
 import edu.uta.campussports.screens.MyEventsScreen
 import edu.uta.campussports.screens.ToolsScreen
 import edu.uta.campussports.viewmodel.EventsViewModel
+import edu.uta.campussports.viewmodel.ActionState
 import edu.uta.campussports.data.UserProfile
 import edu.uta.campussports.data.EventSeeder
 import kotlinx.coroutines.launch
@@ -454,70 +455,94 @@ fun ModernEventCard(event: Event) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateEventScreen() {
-    var sport by remember { mutableStateOf("") }
+    val eventsViewModel: EventsViewModel = viewModel()
+    val authViewModel: FirebaseAuthViewModel = viewModel()
+    val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
+    val actionState by eventsViewModel.actionState.collectAsStateWithLifecycle()
+
+    var title by remember { mutableStateOf("") }
+    var sport by remember { mutableStateOf("Basketball") }
     var place by remember { mutableStateOf("") }
+    var date by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
-    var max by remember { mutableStateOf("10") }
-    var locationType by remember { mutableStateOf("Indoor") }
+    var max by remember { mutableStateOf("6") }
+    var description by remember { mutableStateOf("") }
+    var validationError by remember { mutableStateOf("") }
+
     var expandedSport by remember { mutableStateOf(false) }
-    var expandedLocation by remember { mutableStateOf(false) }
     var expandedPlace by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    
+
     val sports = listOf("Basketball", "Soccer", "Volleyball", "Tennis", "Swimming", "Badminton", "Ping Pong", "Running")
-    val locationTypes = listOf("Indoor", "Outdoor")
-    val indoorLocations = listOf("MAC Basketball Court 1", "MAC Basketball Court 2", "MAC Basketball Court 3", "MAC Basketball Court 4", 
-                                "MAC Volleyball Court 1", "MAC Volleyball Court 2", "MAC Gym Court 1", "MAC Gym Court 2", "MAC Gym Court 3", 
-                                "MAC Activity Room", "MAC Aquatic Center", "MAC Fitness Center", "MAC Dance Studio")
-    val outdoorLocations = listOf("MAC Outdoor Fields", "MAC Tennis Courts", "UTA Campus Loop", "MAC Track", "MAC Intramural Fields", "UTA Quad")
-    
-    val locationOptions = if (locationType == "Indoor") indoorLocations else outdoorLocations
+    val allLocations = listOf(
+        "MAC Basketball Court 1", "MAC Basketball Court 2", "MAC Basketball Court 3", "MAC Basketball Court 4",
+        "MAC Volleyball Court 1", "MAC Volleyball Court 2", "MAC Gym Court 1", "MAC Gym Court 2", "MAC Gym Court 3",
+        "MAC Activity Room", "MAC Aquatic Center", "MAC Fitness Center", "MAC Dance Studio",
+        "MAC Outdoor Fields", "MAC Tennis Courts", "UTA Campus Loop", "MAC Track", "MAC Intramural Fields", "UTA Quad"
+    )
+
+    // Data validation function
+    fun validateForm(): Boolean {
+        validationError = when {
+            title.isBlank() -> "Event title is required"
+            sport.isBlank() -> "Sport is required"
+            place.isBlank() -> "Location is required"
+            date.isBlank() -> "Date is required"
+            time.isBlank() -> "Time is required"
+            max.toIntOrNull() == null -> "Max participants must be a number"
+            max.toInt() < 2 -> "Minimum 2 participants required"
+            max.toInt() > 20 -> "Maximum 20 participants allowed"
+            else -> ""
+        }
+        return validationError.isEmpty()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
                 Text(
                     text = "Create New Event",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(4.dp))
                 Text(
                     text = "Fill in the details to create your sports event",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
+            // Event Title
+            item {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Event Title") },
+                    placeholder = { Text("e.g., Friendly Basketball Game") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+
+            // Sport Dropdown
             item {
                 ExposedDropdownMenuBox(
                     expanded = expandedSport,
-                    onExpandedChange = { expandedSport = it }
+                    onExpandedChange = { expandedSport = !expandedSport }
                 ) {
                     OutlinedTextField(
                         value = sport,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Choose Sport") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
+                        label = { Text("Sport") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSport) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(),
-                        shape = RoundedCornerShape(12.dp)
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
                     ExposedDropdownMenu(
                         expanded = expandedSport,
@@ -535,35 +560,26 @@ fun CreateEventScreen() {
                     }
                 }
             }
-            
+
+            // Location Dropdown
             item {
                 ExposedDropdownMenuBox(
                     expanded = expandedPlace,
-                    onExpandedChange = { expandedPlace = it }
+                    onExpandedChange = { expandedPlace = !expandedPlace }
                 ) {
                     OutlinedTextField(
                         value = place,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Choose Location") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
+                        label = { Text("Location") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPlace) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(),
-                        shape = RoundedCornerShape(12.dp)
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
                     ExposedDropdownMenu(
                         expanded = expandedPlace,
                         onDismissRequest = { expandedPlace = false }
                     ) {
-                        locationOptions.forEach { locationOption ->
+                        allLocations.forEach { locationOption ->
                             DropdownMenuItem(
                                 text = { Text(locationOption) },
                                 onClick = {
@@ -575,121 +591,153 @@ fun CreateEventScreen() {
                     }
                 }
             }
-            
+
+            // Date and Time (Separate fields)
             item {
-                ExposedDropdownMenuBox(
-                    expanded = expandedLocation,
-                    onExpandedChange = { expandedLocation = it }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedTextField(
-                        value = locationType,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Location Type") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = if (locationType == "Indoor") Icons.Default.Home else Icons.Default.Place,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedLocation) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(),
-                        shape = RoundedCornerShape(12.dp)
+                        value = date,
+                        onValueChange = { date = it },
+                        label = { Text("Date") },
+                        placeholder = { Text("Dec 7, 2024") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
                     )
-                    ExposedDropdownMenu(
-                        expanded = expandedLocation,
-                        onDismissRequest = { expandedLocation = false }
+                    OutlinedTextField(
+                        value = time,
+                        onValueChange = { time = it },
+                        label = { Text("Time") },
+                        placeholder = { Text("6:00 PM") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                }
+            }
+
+            // Max Participants
+            item {
+                OutlinedTextField(
+                    value = max,
+                    onValueChange = { max = it },
+                    label = { Text("Max Participants") },
+                    placeholder = { Text("6") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+
+            // Description
+            item {
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description (Optional)") },
+                    placeholder = { Text("Tell players about your event...") },
+                    modifier = Modifier.fillMaxWidth().height(80.dp),
+                    maxLines = 3
+                )
+            }
+
+            // Validation Error Display
+            if (validationError.isNotEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE))
                     ) {
-                        locationTypes.forEach { locationOption ->
-                            DropdownMenuItem(
-                                text = { Text(locationOption) },
-                                onClick = {
-                                    locationType = locationOption
-                                    place = "" // Reset place when location type changes
-                                    expandedLocation = false
-                                }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = Color(0xFFC62828)
+                            )
+                            Text(
+                                text = validationError,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFC62828)
                             )
                         }
                     }
                 }
             }
-            
+
+            // Create Button
             item {
-                OutlinedTextField(
-                    value = time,
-                    onValueChange = { time = it },
-                    label = { Text("Date & Time") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true,
-                    placeholder = { Text("e.g., Sat 5:00 PM") }
-                )
-            }
-            
-            item {
-                OutlinedTextField(
-                    value = max,
-                    onValueChange = { max = it },
-                    label = { Text("Max Players") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-            }
-            
-            item {
-                Spacer(Modifier.height(16.dp))
                 Button(
                     onClick = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = "Event Created! 🎉",
-                                duration = SnackbarDuration.Short
+                        if (validateForm()) {
+                            eventsViewModel.createEvent(
+                                title = title,
+                                sport = sport,
+                                location = place,
+                                date = date,
+                                time = time,
+                                maxParticipants = max.toInt(),
+                                difficulty = "Beginner",  // Default difficulty
+                                description = description,
+                                createdBy = currentUser?.uid ?: ""
                             )
+                            // Reset form after successful submission
+                            title = ""
+                            sport = "Basketball"
+                            place = ""
+                            date = ""
+                            time = ""
+                            max = "6"
+                            description = ""
+                            validationError = ""
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "Create Event",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Text("Create Event", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            // Status Message
+            if (actionState is ActionState.Success) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E8))
+                    ) {
+                        Text(
+                            text = (actionState as ActionState.Success).message,
+                            color = Color(0xFF2E7D32),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+            } else if (actionState is ActionState.Error) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                    ) {
+                        Text(
+                            text = (actionState as ActionState.Error).message,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
         }
-        
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 

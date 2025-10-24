@@ -167,59 +167,27 @@ fun CreateEventDialog(
                     )
                 }
                 
-                // Max Participants and Difficulty
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Max Participants", style = MaterialTheme.typography.bodyMedium)
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            IconButton(onClick = { if (maxParticipants > 2) maxParticipants-- }) {
-                                Icon(Icons.Default.Close, contentDescription = "Decrease")
-                            }
-                            Text(
-                                text = maxParticipants.toString(),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            IconButton(onClick = { if (maxParticipants < 20) maxParticipants++ }) {
-                                Icon(Icons.Default.Add, contentDescription = "Increase")
-                            }
+                // Max Participants
+                Column {
+                    Text("Max Participants", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        IconButton(onClick = { if (maxParticipants > 2) maxParticipants-- }) {
+                            Icon(Icons.Default.Close, contentDescription = "Decrease")
                         }
-                    }
-                    
-                    // Difficulty
-                    Column(modifier = Modifier.weight(1f)) {
-                        ExposedDropdownMenuBox(
-                            expanded = difficultyExpanded,
-                            onExpandedChange = { difficultyExpanded = !difficultyExpanded }
-                        ) {
-                            OutlinedTextField(
-                                value = difficulty,
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("Difficulty") },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = difficultyExpanded) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth()
-                            )
-                            ExposedDropdownMenu(
-                                expanded = difficultyExpanded,
-                                onDismissRequest = { difficultyExpanded = false }
-                            ) {
-                                AcademicInfo.SKILL_LEVELS.forEach { level ->
-                                    DropdownMenuItem(
-                                        text = { Text(level) },
-                                        onClick = {
-                                            difficulty = level
-                                            difficultyExpanded = false
-                                        }
-                                    )
-                                }
-                            }
+                        Text(
+                            text = maxParticipants.toString(),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        IconButton(onClick = { if (maxParticipants < 20) maxParticipants++ }) {
+                            Icon(Icons.Default.Add, contentDescription = "Increase")
                         }
                     }
                 }
