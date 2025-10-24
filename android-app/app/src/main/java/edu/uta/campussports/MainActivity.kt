@@ -1019,21 +1019,54 @@ fun ProfileScreen() {
         }
         
         item {
-            ProfileInfoCard(
-                title = "Statistics",
-                icon = Icons.Default.Settings
+            // Profile Setup Guidance Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                        RoundedCornerShape(16.dp)
+                    ),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    StatCard("12", "Events Joined")
-                    StatCard("8", "Events Created")
-                    StatCard("4.9", "Rating")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Complete Your Profile",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Text(
+                        text = "Tap 'Edit Profile' to complete and update your information. Your profile helps other students find compatible teammates!",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        lineHeight = androidx.compose.ui.unit.TextUnit(value = 1.5f, type = androidx.compose.ui.unit.TextUnitType.Sp)
+                    )
                 }
             }
         }
-        
+
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
