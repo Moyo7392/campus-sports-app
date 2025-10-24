@@ -170,14 +170,12 @@ fun CreateEventDialog(
                         )
                     }
 
-                    // Time Input
-                    OutlinedTextField(
-                        value = time,
-                        onValueChange = { time = it },
-                        label = { Text("Time") },
-                        placeholder = { Text("6:00 PM") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
+                    // Time Picker Dropdown
+                    TimePickerField(
+                        selectedTime = time,
+                        onTimeSelected = { time = it },
+                        label = "Time",
+                        placeholder = "Select a time"
                     )
                 }
                 
@@ -251,7 +249,8 @@ fun CreateEventDialog(
                 ) {
                     OutlinedButton(
                         onClick = onDismiss,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text("Cancel")
                     }
@@ -265,8 +264,9 @@ fun CreateEventDialog(
                                 )
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                     ) {
                         Text("Create Event")
                     }

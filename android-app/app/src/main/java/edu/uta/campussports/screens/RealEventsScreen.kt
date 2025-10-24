@@ -68,7 +68,9 @@ fun RealEventsScreen(
             
             Button(
                 onClick = { showCreateDialog = true },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0064A4))
+                modifier = Modifier.height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -304,8 +306,9 @@ fun RealEventCard(
                 if (isUserInEvent) {
                     Button(
                         onClick = onLeaveEvent,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
                     ) {
                         Icon(Icons.Default.ExitToApp, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -315,8 +318,9 @@ fun RealEventCard(
                     Button(
                         onClick = onJoinEvent,
                         enabled = !event.isFull && currentUserId != null,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0064A4)),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))

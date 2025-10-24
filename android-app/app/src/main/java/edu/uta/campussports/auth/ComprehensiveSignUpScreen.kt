@@ -342,15 +342,16 @@ fun ComprehensiveSignUpScreen(
                         bio = bio
                     )
                 },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = authState !is AuthState.Loading && 
-                         fullName.isNotBlank() && 
-                         email.isNotBlank() && 
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                enabled = authState !is AuthState.Loading &&
+                         fullName.isNotBlank() &&
+                         email.isNotBlank() &&
                          password.isNotBlank() &&
                          major.isNotBlank() &&
                          year.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0064A4)
+                    containerColor = Color(0xFF4CAF50)
                 )
             ) {
                 if (authState is AuthState.Loading) {
@@ -362,7 +363,7 @@ fun ComprehensiveSignUpScreen(
                     Text("Create Account", fontWeight = FontWeight.SemiBold)
                 }
             }
-            
+
             // Back to Sign In
             TextButton(
                 onClick = onNavigateBack,

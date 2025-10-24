@@ -6,8 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -16,15 +14,10 @@ import androidx.compose.material3.*
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarDuration
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.*
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -40,11 +33,11 @@ import edu.uta.campussports.screens.RealChatScreen
 import edu.uta.campussports.screens.MyEventsScreen
 import edu.uta.campussports.screens.ToolsScreen
 import edu.uta.campussports.screens.DatePickerField
+import edu.uta.campussports.screens.TimePickerField
 import edu.uta.campussports.viewmodel.EventsViewModel
 import edu.uta.campussports.viewmodel.ActionState
 import edu.uta.campussports.data.UserProfile
 import edu.uta.campussports.data.EventSeeder
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -220,239 +213,6 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
     }
 }
 
-data class Event(
-    val id: String,
-    val sport: String,
-    val place: String,
-    val time: String,
-    val players: Int,
-    val maxPlayers: Int,
-    val category: String,
-    val icon: ImageVector,
-    val color: Color
-)
-
-private fun sampleEvents(): List<Event> = listOf(
-    Event("1", "Basketball 3v3", "MAC Basketball Court 2", "Sat 5:00 PM", 4, 6, "Indoor", Icons.Default.Star, Color(0xFFFF6B35)),
-    Event("2", "Soccer Pickup", "MAC Outdoor Fields", "Sun 3:30 PM", 9, 14, "Outdoor", Icons.Default.Star, Color(0xFF4CAF50)),
-    Event("3", "Volleyball", "MAC Volleyball Court 1", "Today 7:00 PM", 6, 10, "Indoor", Icons.Default.Star, Color(0xFF2196F3)),
-    Event("4", "Tennis Match", "MAC Tennis Courts", "Mon 4:30 PM", 2, 4, "Outdoor", Icons.Default.Star, Color(0xFFFFC107)),
-    Event("5", "Swimming Laps", "MAC Aquatic Center", "Tue 6:00 AM", 8, 12, "Indoor", Icons.Default.Star, Color(0xFF00BCD4)),
-    Event("6", "Badminton", "MAC Gym Court 3", "Wed 8:00 PM", 4, 8, "Indoor", Icons.Default.Star, Color(0xFF9C27B0)),
-    Event("7", "Ping Pong Tournament", "MAC Activity Room", "Thu 7:30 PM", 12, 16, "Indoor", Icons.Default.Star, Color(0xFFE91E63)),
-    Event("8", "Morning Run", "UTA Campus Loop", "Fri 7:00 AM", 15, 25, "Outdoor", Icons.Default.Star, Color(0xFF795548))
-)
-
-@Composable
-fun EventsListScreen() {
-    val events = remember { sampleEvents() }
-    var selectedFilter by remember { mutableStateOf("All") }
-    val filters = listOf("All", "Basketball", "Soccer", "Volleyball", "Tennis", "Swimming", "Badminton", "Running")
-    
-    val filteredEvents = if (selectedFilter == "All") {
-        events
-    } else {
-        events.filter { it.sport.contains(selectedFilter, ignoreCase = true) }
-    }
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        LazyRow(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(filters) { filter ->
-                FilterChip(
-                    onClick = { selectedFilter = filter },
-                    label = { Text(filter) },
-                    selected = selectedFilter == filter,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-            }
-        }
-        
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(filteredEvents) { event ->
-                ModernEventCard(event)
-            }
-        }
-    }
-}
-
-@Composable
-fun ModernEventCard(event: Event) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(event.color.copy(alpha = 0.1f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = event.icon,
-                        contentDescription = null,
-                        tint = event.color,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                Spacer(Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = event.sport,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            text = event.place,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                AssistChip(
-                    onClick = { },
-                    label = { Text(event.category) },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = event.color.copy(alpha = 0.1f),
-                        labelColor = event.color
-                    )
-                )
-            }
-            
-            Spacer(Modifier.height(16.dp))
-            
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = event.time,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            Spacer(Modifier.height(16.dp))
-            
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                repeat(minOf(event.players, 4)) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                CircleShape
-                            )
-                            .offset(x = (-8 * it).dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-                if (event.players > 4) {
-                    Text(
-                        text = "+${event.players - 4}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.offset(x = (-32).dp)
-                    )
-                }
-                Spacer(Modifier.width(16.dp))
-                Text(
-                    text = "${event.players}/${event.maxPlayers} joined",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            Spacer(Modifier.height(12.dp))
-            
-            LinearProgressIndicator(
-                progress = { event.players.toFloat() / event.maxPlayers.toFloat() },
-                modifier = Modifier.fillMaxWidth(),
-                color = event.color,
-                trackColor = event.color.copy(alpha = 0.1f)
-            )
-            
-            Spacer(Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = event.color
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Details")
-                }
-                Button(
-                    onClick = { },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = event.color
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Join")
-                }
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateEventScreen() {
@@ -618,13 +378,12 @@ fun CreateEventScreen() {
                         )
                     }
 
-                    OutlinedTextField(
-                        value = time,
-                        onValueChange = { time = it },
-                        label = { Text("Time") },
-                        placeholder = { Text("6:00 PM") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
+                    // Time Picker Dropdown
+                    TimePickerField(
+                        selectedTime = time,
+                        onTimeSelected = { time = it },
+                        label = "Time",
+                        placeholder = "Select a time"
                     )
                 }
             }
@@ -749,150 +508,6 @@ fun CreateEventScreen() {
                         )
                     }
                 }
-            }
-        }
-    }
-}
-
-data class ChatMessage(
-    val id: String,
-    val message: String,
-    val isMe: Boolean,
-    val time: String
-)
-
-private fun sampleMessages(): List<ChatMessage> = listOf(
-    ChatMessage("1", "Hey, anyone up for basketball later?", false, "2:30 PM"),
-    ChatMessage("2", "I'm in! What time?", true, "2:32 PM"),
-    ChatMessage("3", "How about 5 PM at MAC Court 2?", false, "2:35 PM"),
-    ChatMessage("4", "Perfect! See you at the MAC 🏀", true, "2:36 PM"),
-    ChatMessage("5", "Anyone else joining? Courts 1 & 3 are free too", false, "2:45 PM"),
-    ChatMessage("6", "I'll be there! Just finished at the UTA gym", true, "3:10 PM")
-)
-
-@Composable
-fun ChatScreen() {
-    val messages = remember { sampleMessages() }
-    
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            reverseLayout = true
-        ) {
-            items(messages.reversed()) { message ->
-                ChatBubble(message)
-            }
-            item {
-                Text(
-                    text = "MAC Basketball Group Chat",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-        }
-        
-        FloatingActionButton(
-            onClick = { },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            containerColor = MaterialTheme.colorScheme.primary
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Start new chat",
-                tint = MaterialTheme.colorScheme.onPrimary
-            )
-        }
-    }
-}
-
-@Composable
-fun ChatBubble(message: ChatMessage) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (message.isMe) Arrangement.End else Arrangement.Start
-    ) {
-        if (!message.isMe) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            Spacer(Modifier.width(8.dp))
-        }
-        
-        Column(
-            horizontalAlignment = if (message.isMe) Alignment.End else Alignment.Start,
-            modifier = Modifier.widthIn(max = 280.dp)
-        ) {
-            Card(
-                shape = RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
-                    bottomStart = if (message.isMe) 16.dp else 4.dp,
-                    bottomEnd = if (message.isMe) 4.dp else 16.dp
-                ),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (message.isMe) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    }
-                )
-            ) {
-                Text(
-                    text = message.message,
-                    modifier = Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (message.isMe) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = message.time,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            )
-        }
-        
-        if (message.isMe) {
-            Spacer(Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Me",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold
-                )
             }
         }
     }
@@ -1075,15 +690,15 @@ fun ProfileScreen() {
                 if (isEditing) {
                     OutlinedButton(
                         onClick = { isEditing = false },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).height(50.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text("Cancel")
                     }
-                    
+
                     Button(
                         onClick = { isEditing = false },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).height(50.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
@@ -1100,7 +715,7 @@ fun ProfileScreen() {
                 } else {
                     Button(
                         onClick = { isEditing = true },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
@@ -1219,24 +834,5 @@ fun ProfileField(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun StatCard(value: String, label: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }

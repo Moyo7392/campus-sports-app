@@ -52,7 +52,7 @@ fun FirebaseAuthScreen(
             modifier = Modifier.size(120.dp),
             shape = RoundedCornerShape(60.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF0064A4) // UTA Blue
+                containerColor = Color(0xFF4CAF50) // Primary Green
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
@@ -238,7 +238,11 @@ fun FirebaseAuthScreen(
                                 showComprehensiveSignUp = true
                             }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4CAF50)
+                        )
                     ) {
                         if (authState is AuthState.Loading) {
                             CircularProgressIndicator(
@@ -374,11 +378,11 @@ private fun FirebaseForgotPasswordContent(
             
             Button(
                 onClick = onSendReset,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(50.dp),
                 enabled = authState !is AuthState.Loading && email.isNotBlank(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0064A4)
+                    containerColor = Color(0xFF4CAF50)
                 )
             ) {
                 if (authState is AuthState.Loading) {

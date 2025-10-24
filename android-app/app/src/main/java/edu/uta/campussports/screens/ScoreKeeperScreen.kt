@@ -17,14 +17,78 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// Sport-specific configurations
+data class SportConfig(
+    val name: String,
+    val points: IntArray = intArrayOf(1, 2, 3),
+    val pointLabels: List<String> = listOf("+1", "+2", "+3"),
+    val description: String = ""
+)
+
+val SPORTS_CONFIG = mapOf(
+    "Basketball" to SportConfig(
+        name = "Basketball",
+        points = intArrayOf(1, 2, 3),
+        pointLabels = listOf("+1 Free Throw", "+2 Points", "+3 Pointer"),
+        description = "Track free throws, 2-pointers, and 3-pointers"
+    ),
+    "Soccer" to SportConfig(
+        name = "Soccer",
+        points = intArrayOf(1),
+        pointLabels = listOf("+1 Goal"),
+        description = "Track goals"
+    ),
+    "Volleyball" to SportConfig(
+        name = "Volleyball",
+        points = intArrayOf(1),
+        pointLabels = listOf("+1 Point"),
+        description = "Track points (first to 25)"
+    ),
+    "Tennis" to SportConfig(
+        name = "Tennis",
+        points = intArrayOf(1),
+        pointLabels = listOf("+1 Game"),
+        description = "Track games won"
+    ),
+    "Badminton" to SportConfig(
+        name = "Badminton",
+        points = intArrayOf(1),
+        pointLabels = listOf("+1 Point"),
+        description = "Track points (first to 21)"
+    ),
+    "Ping Pong" to SportConfig(
+        name = "Ping Pong",
+        points = intArrayOf(1),
+        pointLabels = listOf("+1 Point"),
+        description = "Track points (first to 11)"
+    ),
+    "Running" to SportConfig(
+        name = "Running",
+        points = intArrayOf(1),
+        pointLabels = listOf("+1 Lap"),
+        description = "Track laps completed"
+    ),
+    "Swimming" to SportConfig(
+        name = "Swimming",
+        points = intArrayOf(1),
+        pointLabels = listOf("+1 Lap"),
+        description = "Track laps completed"
+    )
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScoreKeeperScreen() {
     var team1Name by remember { mutableStateOf("") }
     var team2Name by remember { mutableStateOf("") }
-    var sportName by remember { mutableStateOf("") }
+    var selectedSport by remember { mutableStateOf("Basketball") }
+    var sportExpanded by remember { mutableStateOf(false) }
     var showScoreboard by remember { mutableStateOf(false) }
     var team1Score by remember { mutableStateOf(0) }
     var team2Score by remember { mutableStateOf(0) }
+
+    val sports = listOf("Basketball", "Soccer", "Volleyball", "Tennis", "Badminton", "Ping Pong", "Running", "Swimming")
+    val sportConfig = SPORTS_CONFIG[selectedSport] ?: SPORTS_CONFIG["Basketball"]!!
 
     if (!showScoreboard) {
         // Setup screen
@@ -74,22 +138,68 @@ fun ScoreKeeperScreen() {
             }
 
             item {
-                OutlinedTextField(
-                    value = sportName,
-                    onValueChange = { sportName = it },
-                    label = { Text("Sport Name") },
+                ExposedDropdownMenuBox(
+                    expanded = sportExpanded,
+                    onExpandedChange = { sportExpanded = !sportExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = selectedSport,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Select Sport") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sportExpanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = sportExpanded,
+                        onDismissRequest = { sportExpanded = false }
+                    ) {
+                        sports.forEach { sport ->
+                            DropdownMenuItem(
+                                text = { Text(sport) },
+                                onClick = {
+                                    selectedSport = sport
+                                    sportExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true,
-                    placeholder = { Text("e.g., Basketball, Soccer, Volleyball") }
-                )
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "How to track",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = sportConfig.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
 
             item {
                 Spacer(Modifier.height(16.dp))
                 Button(
                     onClick = {
-                        if (team1Name.isNotBlank() && team2Name.isNotBlank() && sportName.isNotBlank()) {
+                        if (team1Name.isNotBlank() && team2Name.isNotBlank()) {
                             showScoreboard = true
                             team1Score = 0
                             team2Score = 0
@@ -102,7 +212,7 @@ fun ScoreKeeperScreen() {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     ),
-                    enabled = team1Name.isNotBlank() && team2Name.isNotBlank() && sportName.isNotBlank()
+                    enabled = team1Name.isNotBlank() && team2Name.isNotBlank()
                 ) {
                     Text(
                         text = "Start Scoring",
@@ -127,7 +237,7 @@ fun ScoreKeeperScreen() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = sportName,
+                        text = selectedSport,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -136,10 +246,11 @@ fun ScoreKeeperScreen() {
                             showScoreboard = false
                             team1Name = ""
                             team2Name = ""
-                            sportName = ""
                             team1Score = 0
                             team2Score = 0
                         },
+                        modifier = Modifier.height(40.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.outlinedButtonColors()
                     ) {
                         Text("← Back")
@@ -181,34 +292,53 @@ fun ScoreKeeperScreen() {
                             color = Color(0xFF4CAF50)
                         )
 
-                        Row(
+                        // Sport-specific buttons
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Button(
-                                onClick = { if (team1Score > 0) team1Score-- },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(50.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF4CAF50)
-                                ),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.Close, contentDescription = "Decrease")
+                            // Undo button
+                            if (team1Score > 0) {
+                                Button(
+                                    onClick = { team1Score-- },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(40.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF757575)
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Icon(Icons.Default.Close, contentDescription = "Undo")
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Undo", style = MaterialTheme.typography.labelSmall)
+                                }
                             }
 
-                            Button(
-                                onClick = { team1Score++ },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(50.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF4CAF50)
-                                ),
-                                shape = RoundedCornerShape(12.dp)
+                            // Sport-specific point buttons
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = "Increase")
+                                sportConfig.pointLabels.forEachIndexed { index, label ->
+                                    Button(
+                                        onClick = { team1Score += sportConfig.points[index] },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(50.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF4CAF50)
+                                        ),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -249,34 +379,53 @@ fun ScoreKeeperScreen() {
                             color = Color(0xFF2196F3)
                         )
 
-                        Row(
+                        // Sport-specific buttons
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Button(
-                                onClick = { if (team2Score > 0) team2Score-- },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(50.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF2196F3)
-                                ),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.Close, contentDescription = "Decrease")
+                            // Undo button
+                            if (team2Score > 0) {
+                                Button(
+                                    onClick = { team2Score-- },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(40.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF757575)
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Icon(Icons.Default.Close, contentDescription = "Undo")
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Undo", style = MaterialTheme.typography.labelSmall)
+                                }
                             }
 
-                            Button(
-                                onClick = { team2Score++ },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(50.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF2196F3)
-                                ),
-                                shape = RoundedCornerShape(12.dp)
+                            // Sport-specific point buttons
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = "Increase")
+                                sportConfig.pointLabels.forEachIndexed { index, label ->
+                                    Button(
+                                        onClick = { team2Score += sportConfig.points[index] },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(50.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF2196F3)
+                                        ),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
