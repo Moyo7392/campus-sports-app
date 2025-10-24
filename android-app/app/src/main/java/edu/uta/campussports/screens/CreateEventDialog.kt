@@ -31,14 +31,30 @@ fun CreateEventDialog(
     var maxParticipants by remember { mutableStateOf(6) }
     var difficulty by remember { mutableStateOf(userProfile?.skillLevel ?: "Beginner") }
     var description by remember { mutableStateOf("") }
-    
+
     var sportExpanded by remember { mutableStateOf(false) }
     var locationExpanded by remember { mutableStateOf(false) }
     var difficultyExpanded by remember { mutableStateOf(false) }
-    
+    var validationError by remember { mutableStateOf("") }
+
     // Set default location when sport changes
     LaunchedEffect(selectedSport) {
         selectedLocation = Sports.UTA_LOCATIONS[selectedSport]?.firstOrNull() ?: ""
+    }
+
+    // Data validation function
+    fun validateForm(): Boolean {
+        validationError = when {
+            title.isBlank() -> "Event title is required"
+            selectedSport.isBlank() -> "Sport is required"
+            selectedLocation.isBlank() -> "Location is required"
+            date.isBlank() -> "Date is required"
+            time.isBlank() -> "Time is required"
+            maxParticipants < 2 -> "Minimum 2 participants required"
+            maxParticipants > 20 -> "Maximum 20 participants allowed"
+            else -> ""
+        }
+        return validationError.isEmpty()
     }
     
     Dialog(onDismissRequest = onDismiss) {
@@ -137,7 +153,7 @@ fun CreateEventDialog(
                         value = date,
                         onValueChange = { date = it },
                         label = { Text("Date") },
-                        placeholder = { Text("Today, Dec 7") },
+                        placeholder = { Text("Dec 7, 2024") },
                         modifier = Modifier.weight(1f),
                         singleLine = true
                     )
@@ -163,7 +179,7 @@ fun CreateEventDialog(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             IconButton(onClick = { if (maxParticipants > 2) maxParticipants-- }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Decrease")
+                                Icon(Icons.Default.Close, contentDescription = "Decrease")
                             }
                             Text(
                                 text = maxParticipants.toString(),
@@ -218,6 +234,34 @@ fun CreateEventDialog(
                     maxLines = 3
                 )
                 
+                // Validation Error Display
+                if (validationError.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = Color(0xFFC62828)
+                            )
+                            Text(
+                                text = validationError,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFC62828)
+                            )
+                        }
+                    }
+                }
+
                 // Action Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -229,17 +273,17 @@ fun CreateEventDialog(
                     ) {
                         Text("Cancel")
                     }
-                    
+
                     Button(
                         onClick = {
-                            onCreateEvent(
-                                title, selectedSport, selectedLocation, date, time,
-                                maxParticipants, difficulty, description
-                            )
+                            if (validateForm()) {
+                                onCreateEvent(
+                                    title, selectedSport, selectedLocation, date, time,
+                                    maxParticipants, difficulty, description
+                                )
+                            }
                         },
-                        enabled = title.isNotBlank() && selectedLocation.isNotBlank() && 
-                                 date.isNotBlank() && time.isNotBlank(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0064A4)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Create Event")
