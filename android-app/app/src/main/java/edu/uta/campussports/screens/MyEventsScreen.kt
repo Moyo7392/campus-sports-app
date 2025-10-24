@@ -44,7 +44,7 @@ fun MyEventsScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = Icons.Default.EventNote,
+                imageVector = Icons.Default.Favorite,
                 contentDescription = null,
                 modifier = Modifier.size(80.dp),
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
@@ -230,7 +230,7 @@ fun MyEventCard(event: SportsEvent) {
 
 @Composable
 fun EventDetailRow(
-    icon: androidx.compose.material.icons.Icons.Outlined? = null,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     label: String
 ) {
     Row(

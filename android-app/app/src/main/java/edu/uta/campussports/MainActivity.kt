@@ -163,7 +163,7 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
                 NavigationBarItem(
                     selected = selectedTab == Tab.MY_EVENTS,
                     onClick = { selectedTab = Tab.MY_EVENTS },
-                    icon = { Icon(Icons.Default.EventNote, contentDescription = "My Events") },
+                    icon = { Icon(Icons.Default.Favorite, contentDescription = "My Events") },
                     label = { Text("My Events") }
                 )
                 NavigationBarItem(
