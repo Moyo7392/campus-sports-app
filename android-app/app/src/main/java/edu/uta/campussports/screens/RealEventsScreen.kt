@@ -327,8 +327,8 @@ fun RealEventCard(
                         Text(if (event.isFull) "Full" else "Join")
                     }
                 }
-                
-                Button(
+             /*
+            Button(
                     onClick = { /* Navigate to chat */ },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
                     modifier = Modifier.weight(1f)
@@ -337,6 +337,7 @@ fun RealEventCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Chat")
                 }
+              */
             }
         }
     }

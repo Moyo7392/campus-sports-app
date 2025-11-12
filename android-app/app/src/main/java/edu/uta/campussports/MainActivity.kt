@@ -92,7 +92,7 @@ fun CampusSportsApp() {
     }
 }
 
-private enum class Tab { EVENTS, CREATE, CHAT, MY_EVENTS, TOOLS, PROFILE }
+private enum class Tab { EVENTS, CREATE, MY_EVENTS, TOOLS, PROFILE }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +117,6 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
                         when (selectedTab) {
                             Tab.EVENTS -> "Events"
                             Tab.CREATE -> "Create Event"
-                            Tab.CHAT -> "Chat"
                             Tab.MY_EVENTS -> "My Events"
                             Tab.TOOLS -> "Tools"
                             Tab.PROFILE -> "Profile"
@@ -150,12 +149,6 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
                     label = { Text("Create") }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == Tab.CHAT,
-                    onClick = { selectedTab = Tab.CHAT },
-                    icon = { Icon(Icons.Default.Email, contentDescription = "Chat") },
-                    label = { Text("Chat") }
-                )
-                NavigationBarItem(
                     selected = selectedTab == Tab.MY_EVENTS,
                     onClick = { selectedTab = Tab.MY_EVENTS },
                     icon = { Icon(Icons.Default.Favorite, contentDescription = "My Events") },
@@ -180,7 +173,6 @@ private fun HomeScaffold(onSignOut: () -> Unit) {
             when (selectedTab) {
                 Tab.EVENTS -> RealEventsScreen()
                 Tab.CREATE -> CreateEventScreen()
-                Tab.CHAT -> RealChatScreen()
                 Tab.MY_EVENTS -> MyEventsScreen()
                 Tab.TOOLS -> ToolsScreen()
                 Tab.PROFILE -> ProfileScreen()
@@ -514,6 +506,7 @@ fun CreateEventScreen() {
 }
 
 @Composable
+
 fun ProfileScreen() {
     val authViewModel: FirebaseAuthViewModel = viewModel()
     val userProfile by authViewModel.userProfile.collectAsStateWithLifecycle()
