@@ -213,6 +213,13 @@ fun CreateEventScreen() {
     val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
     val actionState by eventsViewModel.actionState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(actionState) {
+        if (actionState is ActionState.Success || actionState is ActionState.Error) {
+            kotlinx.coroutines.delay(2000) // show for 2 seconds
+            eventsViewModel.clearActionState()
+        }
+    }
+
     var title by remember { mutableStateOf("") }
     var sport by remember { mutableStateOf("Basketball") }
     var place by remember { mutableStateOf("") }
@@ -347,12 +354,12 @@ fun CreateEventScreen() {
 
             // Date (with Calendar Picker) and Time (Separate fields)
             item {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Date Picker
                     Card(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surface

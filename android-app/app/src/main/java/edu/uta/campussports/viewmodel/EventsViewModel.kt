@@ -6,7 +6,6 @@ import com.google.firebase.Timestamp
 import edu.uta.campussports.data.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-
 class EventsViewModel : ViewModel() {
     private val eventsRepository = EventsRepository()
     private val chatRepository = ChatRepository()
@@ -51,7 +50,7 @@ class EventsViewModel : ViewModel() {
             
             val result = eventsRepository.createEvent(event)
             _actionState.value = if (result.isSuccess) {
-                ActionState.Success("Event created successfully!")
+                ActionState.Success("Event confirmed! You can see it under My Events.")
             } else {
                 ActionState.Error("Failed to create event: ${result.exceptionOrNull()?.message}")
             }

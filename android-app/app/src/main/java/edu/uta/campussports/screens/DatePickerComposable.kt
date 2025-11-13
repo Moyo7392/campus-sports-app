@@ -1,7 +1,6 @@
 package edu.uta.campussports.screens
 
 import android.app.DatePickerDialog
-import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -26,7 +25,7 @@ fun DatePickerField(
     val calendar = Calendar.getInstance()
     val today = Calendar.getInstance()
 
-    // Parse selected date if it exists
+    // Parse selected date if it exists, so the dialog opens on that date
     if (selectedDate.isNotEmpty()) {
         try {
             val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
@@ -34,8 +33,8 @@ fun DatePickerField(
             if (date != null) {
                 calendar.time = date
             }
-        } catch (e: Exception) {
-            // If parsing fails, use today
+        } catch (_: Exception) {
+            // ignore, fall back to today
         }
     }
 
@@ -45,22 +44,15 @@ fun DatePickerField(
             val selectedCalendar = Calendar.getInstance()
             selectedCalendar.set(year, month, dayOfMonth)
 
-            // Check if selected date is in the future
-            if (selectedCalendar.after(today)) {
-                val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
-                onDateSelected(dateFormat.format(selectedCalendar.time))
-            } else {
-                // Show error - date must be in the future
-                // This could be handled by the parent composable
-                onDateSelected("") // Clear the date to show error
-            }
+            val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
+            onDateSelected(dateFormat.format(selectedCalendar.time))
         },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    // Set minimum date to today
+    // Prevent choosing a date before today
     datePickerDialog.datePicker.minDate = today.timeInMillis
 
     Row(
@@ -87,7 +79,10 @@ fun DatePickerField(
             Text(
                 text = if (selectedDate.isEmpty()) placeholder else selectedDate,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (selectedDate.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                color = if (selectedDate.isEmpty())
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                else
+                    MaterialTheme.colorScheme.onSurface
             )
         }
 
