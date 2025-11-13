@@ -251,7 +251,7 @@ fun RealEventCard(
                         color = Color(0xFF0064A4)
                     )
                 }
-                
+
                 // Participant count with real data
                 Card(
                     colors = CardDefaults.cardColors(
@@ -266,9 +266,9 @@ fun RealEventCard(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             // Details
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -286,7 +286,7 @@ fun RealEventCard(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            
+
             if (event.description.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -295,9 +295,9 @@ fun RealEventCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -327,18 +327,7 @@ fun RealEventCard(
                         Text(if (event.isFull) "Full" else "Join")
                     }
                 }
-             /*
-            Button(
-                    onClick = { /* Navigate to chat */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Email, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Chat")
-                }
-              */
             }
         }
-    }
-}
+            }
+        }

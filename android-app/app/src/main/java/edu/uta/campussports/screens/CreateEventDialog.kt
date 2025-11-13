@@ -15,6 +15,10 @@ import androidx.compose.ui.window.Dialog
 import edu.uta.campussports.data.AcademicInfo
 import edu.uta.campussports.data.Sports
 import edu.uta.campussports.data.UserProfile
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +30,10 @@ fun CreateEventDialog(
     var title by remember { mutableStateOf("") }
     var selectedSport by remember { mutableStateOf(userProfile?.favoritesSports?.firstOrNull() ?: "Basketball") }
     var selectedLocation by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf("") }
+    val today = remember {
+        SimpleDateFormat("MMM d, yyyy", Locale.US).format(Date())
+    }
+    var date by remember { mutableStateOf(today) }
     var time by remember { mutableStateOf("") }
     var maxParticipants by remember { mutableStateOf(6) }
     var difficulty by remember { mutableStateOf(userProfile?.skillLevel ?: "Beginner") }
