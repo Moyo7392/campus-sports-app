@@ -87,7 +87,11 @@ fun MyEventsScreen(
             }
 
             items(myEvents) { event ->
-                MyEventCard(event = event)
+                MyEventCard(
+                    event = event,
+                    currentUserId = currentUser?.uid,
+                    eventsViewModel = eventsViewModel
+                )
             }
 
             item {
@@ -98,7 +102,13 @@ fun MyEventsScreen(
 }
 
 @Composable
-fun MyEventCard(event: SportsEvent) {
+fun MyEventCard(
+    event: SportsEvent,
+    currentUserId: String?,
+    eventsViewModel: EventsViewModel
+) {
+    val isCreator = currentUserId != null && event.createdBy == currentUserId
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -223,6 +233,32 @@ fun MyEventCard(event: SportsEvent) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+
+            if (isCreator) {
+                Spacer(Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    OutlinedButton(
+                        onClick = { eventsViewModel.cancelEvent(event.id) },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Cancel Event",
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text("Cancel Event")
+                    }
+                }
             }
         }
     }

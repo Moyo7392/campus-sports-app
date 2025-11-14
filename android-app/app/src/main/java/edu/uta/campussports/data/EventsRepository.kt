@@ -141,7 +141,20 @@ class EventsRepository {
             event.currentParticipants.contains(userId) || event.createdBy == userId
         }
     }
-    
+    suspend fun cancelEvent(eventId: String): Result<Unit> {
+        return try {
+            FirebaseFirestore.getInstance()
+                .collection("events")
+                .document(eventId)
+                .delete()
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun stopListening() {
         eventsListener?.remove()
     }

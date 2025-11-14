@@ -56,7 +56,7 @@ class EventsViewModel : ViewModel() {
             }
         }
     }
-    
+
     fun joinEvent(eventId: String, userId: String) {
         viewModelScope.launch {
             _actionState.value = ActionState.Loading
@@ -73,7 +73,7 @@ class EventsViewModel : ViewModel() {
     fun leaveEvent(eventId: String, userId: String) {
         viewModelScope.launch {
             _actionState.value = ActionState.Loading
-            
+
             val result = eventsRepository.leaveEvent(eventId, userId)
             _actionState.value = if (result.isSuccess) {
                 ActionState.Success("Left the event")
@@ -82,7 +82,19 @@ class EventsViewModel : ViewModel() {
             }
         }
     }
-    
+      fun cancelEvent(eventId: String) {
+        viewModelScope.launch {
+            _actionState.value = ActionState.Loading
+
+            val result = eventsRepository.cancelEvent(eventId)
+
+            _actionState.value = if (result.isSuccess) {
+                ActionState.Success("Event cancelled.")
+            } else {
+                ActionState.Error(result.exceptionOrNull()?.message ?: "Failed to cancel event")
+            }
+        }
+    }
     fun selectEvent(event: SportsEvent?) {
         _selectedEvent.value = event
         event?.let { chatRepository.startListeningToEventChat(it.id) }
