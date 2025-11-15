@@ -11,16 +11,37 @@ data class SportsEvent(
     val date: String = "",
     val time: String = "",
     val maxParticipants: Int = 6,
-    val currentParticipants: List<String> = emptyList(), // List of user IDs
+    val currentParticipants: List<String> = emptyList(), // List of user IDs (kept for backward compatibility)
+    val participants: List<ParticipantInfo> = emptyList(), // List of participant info with names
     val createdBy: String = "", // User ID who created the event
+    val createdByName: String = "", // Name of user who created the event
     val createdAt: Timestamp = Timestamp.now(),
     val description: String = "",
-    val difficulty: String = "Beginner" // Beginner, Intermediate, Advanced
+    val difficulty: String = "Beginner", // Beginner, Intermediate, Advanced
+    val isActive: Boolean = true, // Whether event is still active
+    val closedReason: String = "", // Reason if event was closed early
+    val closedAt: Timestamp? = null, // When event was closed
+    val kickedParticipants: List<KickedParticipant> = emptyList() // Track who was kicked and why
 ) {
-    val participantCount: Int get() = currentParticipants.size
+    val participantCount: Int get() = currentParticipants.size // Always use currentParticipants as source of truth
     val spotsRemaining: Int get() = maxParticipants - participantCount
     val isFull: Boolean get() = participantCount >= maxParticipants
+    val isEventClosed: Boolean get() = !isActive
 }
+
+// Data class to track participant info with name
+data class ParticipantInfo(
+    val userId: String = "",
+    val userName: String = ""
+)
+
+// Data class to track kicked participants and reason
+data class KickedParticipant(
+    val userId: String = "",
+    val userName: String = "",
+    val reason: String = "",
+    val kickedAt: Timestamp = Timestamp.now()
+)
 
 // Chat Message Data Model
 data class ChatMessage(

@@ -1,30 +1,36 @@
 package edu.uta.campussports.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import edu.uta.campussports.data.UserProfile
 
+private const val TAG = "FirebaseAuthVM"
+
 class FirebaseAuthViewModel : ViewModel() {
-    
+
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
-    
+
     private val _authState = MutableStateFlow<AuthState>(
         if (auth.currentUser != null) AuthState.Authenticated else AuthState.Unauthenticated
     )
     val authState: StateFlow<AuthState> = _authState
-    
+
     private val _currentUser = MutableStateFlow<FirebaseUser?>(auth.currentUser)
     val currentUser: StateFlow<FirebaseUser?> = _currentUser
-    
+
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile
+
+    private var profileListener: ListenerRegistration? = null
     
     fun signIn(email: String, password: String) {
         if (!isValidUTAEmail(email)) {
@@ -111,16 +117,18 @@ class FirebaseAuthViewModel : ViewModel() {
                                     .document(user.uid)
                                     .set(userProfile)
                                     .addOnSuccessListener {
-                                        println("✅ User profile saved successfully for UID: ${user.uid}")
+                                        Log.d(TAG, "✅ User profile saved successfully for UID: ${user.uid}")
                                         _currentUser.value = user
-                                        loadUserProfile(user.uid)
                                         _authState.value = AuthState.Authenticated
+                                        // Small delay to ensure Firestore write completes before reading
+                                        Thread.sleep(500)
+                                        loadUserProfile(user.uid)
                                     }
                                     .addOnFailureListener { exception ->
-                                        println("❌ Failed to save profile: ${exception.message}")
-                                        println("❌ Error code: ${exception::class.simpleName}")
-                                        println("❌ User UID: ${user.uid}")
-                                        println("❌ Full error: ${exception.stackTraceToString()}")
+                                        Log.e(TAG, "❌ Failed to save profile: ${exception.message}")
+                                        Log.e(TAG, "❌ Error code: ${exception::class.simpleName}")
+                                        Log.e(TAG, "❌ User UID: ${user.uid}")
+                                        Log.e(TAG, "❌ Full error: ${exception.stackTraceToString()}")
 
                                         // Provide helpful error message based on error type
                                         val errorMsg = when {
@@ -149,6 +157,7 @@ class FirebaseAuthViewModel : ViewModel() {
         _currentUser.value = null
         _userProfile.value = null
         _authState.value = AuthState.Unauthenticated
+        stopListeningToProfile()
     }
     
     fun resetPassword(email: String) {
@@ -190,20 +199,49 @@ class FirebaseAuthViewModel : ViewModel() {
     }
     
     private fun loadUserProfile(uid: String) {
-        firestore.collection("users")
+        // Stop any existing listener
+        stopListeningToProfile()
+
+        Log.d(TAG, "📱 loadUserProfile called for UID: $uid")
+
+        // Set up real-time listener instead of one-time read
+        profileListener = firestore.collection("users")
             .document(uid)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val profile = document.toObject(UserProfile::class.java)
-                    if (profile != null) {
-                        _userProfile.value = profile.copy(uid = uid)
+            .addSnapshotListener { document, error ->
+                if (error != null) {
+                    Log.e(TAG, "❌ Error listening to user profile: ${error.message}")
+                    Log.e(TAG, "❌ Error code: ${error::class.simpleName}")
+                    return@addSnapshotListener
+                }
+
+                if (document != null && document.exists()) {
+                    try {
+                        Log.d(TAG, "📄 Document data: ${document.data}")
+                        val profile = document.toObject(UserProfile::class.java)
+                        if (profile != null) {
+                            _userProfile.value = profile.copy(uid = uid)
+                            Log.d(TAG, "✅ User profile loaded successfully!")
+                            Log.d(TAG, "   - Name: ${profile.fullName}")
+                            Log.d(TAG, "   - Major: ${profile.major}")
+                            Log.d(TAG, "   - Year: ${profile.year}")
+                            Log.d(TAG, "   - Sports: ${profile.favoritesSports}")
+                            Log.d(TAG, "   - Skill Level: ${profile.skillLevel}")
+                        } else {
+                            Log.e(TAG, "❌ Profile object is null after conversion")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ Error parsing user profile: ${e.message}")
+                        Log.e(TAG, "❌ Stack trace: ${e.stackTraceToString()}")
                     }
+                } else {
+                    Log.w(TAG, "⚠️ User profile document does not exist in Firestore for UID: $uid")
                 }
             }
-            .addOnFailureListener {
-                // Handle error silently for now
-            }
+    }
+
+    private fun stopListeningToProfile() {
+        profileListener?.remove()
+        profileListener = null
     }
     
     init {
@@ -211,6 +249,11 @@ class FirebaseAuthViewModel : ViewModel() {
         auth.currentUser?.let { user ->
             loadUserProfile(user.uid)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopListeningToProfile()
     }
 }
 

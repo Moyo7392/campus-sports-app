@@ -390,11 +390,8 @@ fun ComprehensiveSignUpScreen(
             }
             
             // Sign Up Button
-            val isPasswordStrong = remember(password) {
-                password.length >= 8 &&
-                password.any { it.isUpperCase() } &&
-                password.any { it.isLowerCase() } &&
-                password.any { !it.isLetterOrDigit() }
+            val isPasswordValid = remember(password) {
+                password.length >= 6
             }
             val passwordsMatch = password == confirmPassword && password.isNotBlank()
 
@@ -420,7 +417,7 @@ fun ComprehensiveSignUpScreen(
                          password.isNotBlank() &&
                          confirmPassword.isNotBlank() &&
                          passwordsMatch &&
-                         isPasswordStrong &&
+                         isPasswordValid &&
                          major.isNotBlank() &&
                          year.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
@@ -438,7 +435,7 @@ fun ComprehensiveSignUpScreen(
             }
 
             // Show password requirements if not met
-            if (password.isNotEmpty() && !isPasswordStrong) {
+            if (password.isNotEmpty() && !isPasswordValid) {
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFFFFEBEE)
@@ -450,30 +447,15 @@ fun ComprehensiveSignUpScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = "Password must include:",
+                            text = "Password requirements:",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFFC62828),
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = "• At least 8 characters (${password.length}/8)",
+                            text = "• At least 6 characters (${password.length}/6)",
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (password.length >= 8) Color(0xFF4CAF50) else Color(0xFFC62828)
-                        )
-                        Text(
-                            text = "• Uppercase letter (${if (password.any { it.isUpperCase() }) "✓" else "✗"})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (password.any { it.isUpperCase() }) Color(0xFF4CAF50) else Color(0xFFC62828)
-                        )
-                        Text(
-                            text = "• Lowercase letter (${if (password.any { it.isLowerCase() }) "✓" else "✗"})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (password.any { it.isLowerCase() }) Color(0xFF4CAF50) else Color(0xFFC62828)
-                        )
-                        Text(
-                            text = "• Special character (${if (password.any { !it.isLetterOrDigit() }) "✓" else "✗"})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (password.any { !it.isLetterOrDigit() }) Color(0xFF4CAF50) else Color(0xFFC62828)
+                            color = if (password.length >= 6) Color(0xFF4CAF50) else Color(0xFFC62828)
                         )
                     }
                 }

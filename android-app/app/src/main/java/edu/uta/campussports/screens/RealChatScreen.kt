@@ -82,7 +82,9 @@ fun RealChatScreen(
                 }
             },
             onBackPressed = { selectedEvent = null },
-            currentUserId = currentUser?.uid
+            currentUserId = currentUser?.uid,
+            eventsViewModel = eventsViewModel,
+            isCreator = selectedEvent?.createdBy == currentUser?.uid
         )
     }
 }
@@ -215,17 +217,23 @@ private fun EventChatScreen(
     onMessageChange: (String) -> Unit,
     onSendMessage: () -> Unit,
     onBackPressed: () -> Unit,
-    currentUserId: String?
+    currentUserId: String?,
+    eventsViewModel: EventsViewModel = viewModel(),
+    isCreator: Boolean = false
 ) {
     val listState = rememberLazyListState()
-    
+    var showManagementMenu by remember { mutableStateOf(false) }
+    var showCloseDialog by remember { mutableStateOf(false) }
+    var showKickDialog by remember { mutableStateOf(false) }
+    var selectedParticipantToKick by remember { mutableStateOf<Pair<String, String>?>(null) }
+
     // Auto scroll to bottom when new messages arrive
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.size - 1)
         }
     }
-    
+
     Column(modifier = Modifier.fillMaxSize()) {
         // Chat header
         Surface(
@@ -243,7 +251,7 @@ private fun EventChatScreen(
                         tint = Color.White
                     )
                 }
-                
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = event.title,
@@ -256,6 +264,41 @@ private fun EventChatScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.8f)
                     )
+                }
+
+                // Creator management menu
+                if (isCreator && event.isActive) {
+                    Box {
+                        IconButton(onClick = { showManagementMenu = true }) {
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = "Event options",
+                                tint = Color.White
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showManagementMenu,
+                            onDismissRequest = { showManagementMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Manage Participants") },
+                                onClick = {
+                                    showManagementMenu = false
+                                    showKickDialog = true
+                                },
+                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Close Event") },
+                                onClick = {
+                                    showManagementMenu = false
+                                    showCloseDialog = true
+                                },
+                                leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -325,9 +368,9 @@ private fun EventChatScreen(
                     maxLines = 3,
                     shape = RoundedCornerShape(12.dp)
                 )
-                
+
                 Spacer(modifier = Modifier.width(8.dp))
-                
+
                 FloatingActionButton(
                     onClick = onSendMessage,
                     modifier = Modifier.size(48.dp),
@@ -338,6 +381,47 @@ private fun EventChatScreen(
                 }
             }
         }
+    }
+
+    // Close Event Dialog
+    if (showCloseDialog) {
+        CloseEventDialog(
+            event = event,
+            onDismiss = { showCloseDialog = false },
+            onConfirm = { reason ->
+                eventsViewModel.closeEvent(event.id, reason)
+                showCloseDialog = false
+            }
+        )
+    }
+
+    // Kick Participant Dialog
+    if (showKickDialog) {
+        KickParticipantDialog(
+            event = event,
+            onDismiss = { showKickDialog = false },
+            onSelectParticipant = { userId, userName ->
+                selectedParticipantToKick = userId to userName
+                showKickDialog = false
+            }
+        )
+    }
+
+    // Kick Reason Dialog
+    if (selectedParticipantToKick != null) {
+        KickReasonDialog(
+            participantName = selectedParticipantToKick!!.second,
+            onDismiss = { selectedParticipantToKick = null },
+            onConfirm = { reason ->
+                eventsViewModel.kickParticipant(
+                    eventId = event.id,
+                    userId = selectedParticipantToKick!!.first,
+                    userName = selectedParticipantToKick!!.second,
+                    reason = reason
+                )
+                selectedParticipantToKick = null
+            }
+        )
     }
 }
 
@@ -448,4 +532,158 @@ private fun ChatMessageBubble(
             }
         }
     }
+}
+
+@Composable
+private fun CloseEventDialog(
+    event: SportsEvent,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var reason by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Close Event") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Are you sure you want to close \"${event.title}\"?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Please provide a reason for closing this event:",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = reason,
+                    onValueChange = { reason = it },
+                    placeholder = { Text("E.g., Not enough participants, Weather conditions, etc.") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    maxLines = 4,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (reason.isNotBlank()) {
+                        onConfirm(reason)
+                    }
+                },
+                enabled = reason.isNotBlank()
+            ) {
+                Text("Close Event")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun KickParticipantDialog(
+    event: SportsEvent,
+    onDismiss: () -> Unit,
+    onSelectParticipant: (String, String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Remove Participant") },
+        text = {
+            if (event.currentParticipants.isEmpty() || event.currentParticipants.size == 1) {
+                Text("No participants to remove (only you in the event)")
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp)
+                ) {
+                    items(event.currentParticipants) { userId ->
+                        if (userId != event.createdBy) {
+                            TextButton(
+                                onClick = { onSelectParticipant(userId, userId) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = userId,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun KickReasonDialog(
+    participantName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var reason by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Remove Participant") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Why are you removing $participantName?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                OutlinedTextField(
+                    value = reason,
+                    onValueChange = { reason = it },
+                    placeholder = { Text("Provide a reason...") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    maxLines = 4,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (reason.isNotBlank()) {
+                        onConfirm(reason)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFEF5350)
+                ),
+                enabled = reason.isNotBlank()
+            ) {
+                Text("Remove")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
