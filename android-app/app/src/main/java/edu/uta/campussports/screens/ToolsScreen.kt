@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun ToolsScreen() {
@@ -157,7 +159,17 @@ fun ToolButton(
 
 @Composable
 fun BuzzerScreen(onBack: () -> Unit) {
-    var isPlaying by remember { mutableStateOf(false) }
+    var isRunning by remember { mutableStateOf(false) }
+    var minutesInput by remember { mutableStateOf("0") }
+    var secondsInput by remember { mutableStateOf("10") }
+    var totalTimeLeft by remember { mutableStateOf<Int?>(null) }   // total seconds left
+    val scope = rememberCoroutineScope()
+
+    fun formatTime(sec: Int): String {
+        val m = sec / 60
+        val s = sec % 60
+        return "%02d:%02d".format(m, s)
+    }
 
     Box(
         modifier = Modifier
@@ -168,10 +180,9 @@ fun BuzzerScreen(onBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(20.dp),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Back button at top
+            // Back
             Box(
                 modifier = Modifier
                     .align(Alignment.Start)
@@ -179,70 +190,111 @@ fun BuzzerScreen(onBack: () -> Unit) {
             ) {
                 IconButton(onClick = onBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        Icons.Default.ArrowBack,
                         contentDescription = "Back",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(Modifier.height(10.dp))
 
             Text(
-                text = "Buzzer",
+                text = "Buzzer Timer",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
 
+            // ---- INPUT ROW ----
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = minutesInput,
+                    onValueChange = { if (it.all { c -> c.isDigit() } || it.isEmpty()) minutesInput = it },
+                    label = { Text("Min") },
+                    singleLine = true,
+                    enabled = !isRunning,
+                    modifier = Modifier.width(90.dp)
+                )
+
+                Text(":", style = MaterialTheme.typography.headlineMedium)
+
+                OutlinedTextField(
+                    value = secondsInput,
+                    onValueChange = { if (it.all { c -> c.isDigit() } || it.isEmpty()) secondsInput = it },
+                    label = { Text("Sec") },
+                    singleLine = true,
+                    enabled = !isRunning,
+                    modifier = Modifier.width(90.dp)
+                )
+            }
+
+            Spacer(Modifier.height(40.dp))
+
+            // Countdown display
             Text(
-                text = "Tap the button to sound the buzzer",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = when {
+                    isRunning && totalTimeLeft != null -> formatTime(totalTimeLeft!!)
+                    else -> "00:00"
+                },
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(Modifier.height(40.dp))
 
-            // Large buzzer button
+            // Start button
             Button(
                 onClick = {
-                    isPlaying = true
-                    playBuzzerSound()
+                    if (!isRunning) {
+                        val min = minutesInput.toIntOrNull() ?: 0
+                        val sec = secondsInput.toIntOrNull() ?: 0
+                        val total = (min * 60 + sec).coerceAtLeast(1)  // min 1 sec
+
+                        isRunning = true
+                        totalTimeLeft = total
+
+                        scope.launch {
+                            while (totalTimeLeft!! > 0) {
+                                delay(1000)
+                                totalTimeLeft = totalTimeLeft!! - 1
+                            }
+
+                            // Play buzzer
+                            playBuzzerSound()
+
+                            delay(1100)
+                            isRunning = false
+                            totalTimeLeft = null
+                        }
+                    }
                 },
-                modifier = Modifier
-                    .size(200.dp),
+                modifier = Modifier.size(200.dp),
                 shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF20B2AA)
-                ),
-                enabled = !isPlaying
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF20B2AA)),
+                enabled = !isRunning
             ) {
                 Text(
-                    text = if (isPlaying) "Playing..." else "BUZZ",
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = if (isRunning) "Running..." else "Start",
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(Modifier.height(24.dp))
 
-            // Info text
             Text(
-                text = "Buzzer will play for 1 second",
+                text = "Buzzer plays after the countdown.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            // Reset playing state after sound finishes
-            LaunchedEffect(isPlaying) {
-                if (isPlaying) {
-                    kotlinx.coroutines.delay(1000)
-                    isPlaying = false
-                }
-            }
         }
     }
 }
