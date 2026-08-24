@@ -1,5 +1,7 @@
 # Campus Sports
 
+[![Android CI](https://github.com/Moyo7392/campus-sports-app/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Moyo7392/campus-sports-app/actions/workflows/android-ci.yml)
+
 A native Android app for organizing and running recreational sports events on campus. Students can authenticate, discover or create events, join conversations, manage their own events, and use in-game utilities such as scorekeeping, timers, and a coin flip.
 
 ## Highlights
@@ -46,6 +48,21 @@ Do not reuse production Firebase credentials or real user data in a public demo.
 cd android-app
 ./gradlew assembleDebug
 ```
+
+The GitHub Actions workflow performs the same debug build for every push and pull request.
+
+## Project scope and evidence
+
+Campus Sports is a student team project. The repository preserves the implementation and commit history so individual contributions can be reviewed without presenting the work as a solo project.
+
+Publicly verifiable evidence currently includes the complete Android source, Firebase repository layer, Compose screens, Gradle configuration, and automated build workflow. A demo video and screenshots are planned; they must use test accounts and fabricated event data.
+
+## Roadmap
+
+- Add a short emulator walkthrough using fabricated campus events
+- Add unit tests for event capacity, registration, and ownership rules
+- Add Firebase emulator integration tests for repository behavior
+- Document team roles and individual ownership after all contributors approve the wording
 
 ## Status
 
